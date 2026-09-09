@@ -1,0 +1,47 @@
+{
+  "name": "freegram-desktop",
+  "version": "1.0.1",
+  "description": "FreeGram desktop client",
+  "main": "main.js",
+  "private": true,
+  "author": "FreeGram",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis",
+    "dist:zip": "electron-builder --win zip"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.freegram.desktop",
+    "productName": "FreeGram",
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": {
+      "provider": "generic",
+      "url": "https://fgram.net/updates/"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "config.js",
+      "package.json",
+      "build/icon.png"
+    ]
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  }
+}
