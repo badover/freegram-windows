@@ -11,15 +11,15 @@
 </p>
 
 <p align="center">
-  <b>Windows installer · FreeGram Setup 1.0.1</b>
+  <b>Windows installer · FreeGram Setup 1.0.2</b>
 </p>
 
 ## About FreeGram
 
 FreeGram is an alternative, privacy-focused communication platform.
 
-🌐 **Website:** [fgram.net](https://fgram.net)
-📦 **Main repository:** [github.com/badover/FreeGram](https://github.com/badover/FreeGram)
+**Website:** [fgram.net](https://fgram.net)
+**Main repository:** [github.com/badover/FreeGram](https://github.com/badover/FreeGram)
 
 ## Windows App
 
