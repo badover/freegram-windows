@@ -1,5 +1,5 @@
 const path = require("path");
-const { app, BrowserWindow, Menu, session, desktopCapturer, shell } = require("electron");
+const { app, BrowserWindow, Menu, session, desktopCapturer, shell, ipcMain } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const { APP_URL } = require("./config");
 
@@ -36,6 +36,24 @@ if (!gotLock) {
       });
     });
 
+    ipcMain.on("window-minimize", () => {
+      if (mainWindow) mainWindow.minimize();
+    });
+
+    ipcMain.on("window-maximize", () => {
+      if (mainWindow) {
+        if (mainWindow.isMaximized()) {
+          mainWindow.unmaximize();
+        } else {
+          mainWindow.maximize();
+        }
+      }
+    });
+
+    ipcMain.on("window-close", () => {
+      if (mainWindow) mainWindow.close();
+    });
+
     createWindow();
 
     if (app.isPackaged) {
@@ -62,12 +80,7 @@ function createWindow() {
     title: "FreeGram",
     icon: ICON_PATH,
     show: false,
-    titleBarStyle: "hidden",
-    titleBarOverlay: {
-      color: "#0a0a12",
-      symbolColor: "#00f3ff",
-      height: 40
-    },
+    frame: false,
     webPreferences: {
       preload: __dirname + "/preload.js",
       contextIsolation: true,
@@ -82,22 +95,66 @@ function createWindow() {
 
   mainWindow.webContents.on("did-finish-load", () => {
     mainWindow.webContents.insertCSS(`
+      body.is-electron::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 140px;
+        height: 36px;
+        z-index: 9999;
+        -webkit-app-region: drag;
+        pointer-events: auto;
+      }
       .terminal-header, .chat-header {
         -webkit-app-region: drag;
       }
       .terminal-header button,
       .terminal-header a,
       .chat-header button,
-      .chat-header a {
+      .chat-header a,
+      .window-controls,
+      .win-control-btn,
+      .site-menu,
+      .site-menu *,
+      .login-box,
+      .login-box * {
         -webkit-app-region: no-drag;
       }
-      .chat-header {
-        padding-right: calc(100vw - env(titlebar-area-width, calc(100vw - 150px)));
+      body.is-electron .chat-header {
+        padding-right: 140px;
+      }
+      body.is-electron .site-menu {
+        top: 10px;
+        right: 140px;
+      }
+      #themeModal,
+      #safetyModal,
+      #leaveConfirmModal {
+        z-index: 100000;
       }
       ::-webkit-scrollbar {
         display: none;
       }
     `);
+
+    mainWindow.webContents.executeJavaScript(`
+      (function() {
+        document.body.classList.add('is-electron');
+        if (!document.getElementById('windowControls')) {
+          const div = document.createElement('div');
+          div.id = 'windowControls';
+          div.className = 'window-controls';
+          div.innerHTML = '<button type="button" class="win-control-btn win-minimize-btn" id="winMinimizeBtn" title="Свернуть" aria-label="Minimize"><i class="fas fa-minus" aria-hidden="true"></i></button><button type="button" class="win-control-btn win-maximize-btn" id="winMaximizeBtn" title="Развернуть" aria-label="Maximize"><i class="far fa-square" aria-hidden="true"></i></button><button type="button" class="win-control-btn win-close-btn" id="winCloseBtn" title="Закрыть" aria-label="Close"><i class="fas fa-xmark" aria-hidden="true"></i></button>';
+          document.body.appendChild(div);
+          document.getElementById('winMinimizeBtn')?.addEventListener('click', () => window.electronAPI?.minimize());
+          document.getElementById('winMaximizeBtn')?.addEventListener('click', () => window.electronAPI?.maximize());
+          document.getElementById('winCloseBtn')?.addEventListener('click', () => window.electronAPI?.close());
+        } else {
+          document.getElementById('windowControls').style.display = 'flex';
+        }
+      })();
+    `).catch(() => {});
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
